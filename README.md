@@ -107,6 +107,7 @@ in the wiki.
 [react-native-netinfo](https://github.com/react-native-netinfo/react-native-netinfo) &bull;
 [react-native-pager-view](https://github.com/callstack/react-native-pager-view) &bull;
 [react-native-segmented-control](https://github.com/react-native-segmented-control/segmented-control) &bull;
+[react-native-video](https://github.com/TheWidlarzGroup/react-native-video) &bull;
 [react-native-webview](https://github.com/react-native-webview/react-native-webview) &bull;
 [realm-js](https://github.com/realm/realm-js) &bull;
 [shopify/restyle](https://github.com/Shopify/restyle) &bull;
