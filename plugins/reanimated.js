@@ -6,7 +6,7 @@ const {
 const { getPackageVersion, toVersionNumber, v } = require("../scripts/helpers");
 const { withReactNativeHost } = require("./index");
 
-/** @typedef {import("@expo/config-plugins").ExportedConfig} ExportedConfig */
+/** @import { ExportedConfig } from "@expo/config-plugins" */
 
 const NAME = "react-native-reanimated";
 
@@ -90,6 +90,13 @@ function installerFor(version, indent = "    ") {
  * @returns {ExportedConfig} Modified config
  */
 function withReanimatedExecutor(config) {
+  // As of 3.4.0, manual initialization is no longer necessary:
+  // https://github.com/software-mansion/react-native-reanimated/commit/6f19a367f4939cbbc82f3de6668fd896c695a2ac
+  const reanimated = getPackageVersion("react-native-reanimated");
+  if (toVersionNumber(reanimated) >= v(3, 4, 0)) {
+    return config;
+  }
+
   return withReactNativeHost(config, (config) => {
     if (config.modResults.language !== "objcpp") {
       throw new Error(
