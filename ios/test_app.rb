@@ -160,11 +160,8 @@ def make_project!(xcodeproj, project_root, target_platform, options)
   FileUtils.mkdir_p(destination)
   FileUtils.cp_r(xcodeproj_src, destination)
   name, display_name, version, single_app = app_config(project_root)
-  unless name.nil?
-    xcschemes_path = File.join(xcodeproj_dst, 'xcshareddata', 'xcschemes')
-    FileUtils.cp(File.join(xcschemes_path, 'ReactTestApp.xcscheme'),
-                 File.join(xcschemes_path, "#{name}.xcscheme"))
-  end
+  xcschemes_path = File.join(xcodeproj_dst, 'xcshareddata', 'xcschemes')
+  configure_xcschemes!(xcschemes_path, project_root, target_platform, name)
 
   # Link source files
   %w[ReactTestApp ReactTestAppTests ReactTestAppUITests].each do |file|
