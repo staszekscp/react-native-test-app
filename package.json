@@ -125,7 +125,7 @@
     "@expo/config-plugins": "^9.0.0",
     "@microsoft/eslint-plugin-sdl": "^1.0.0",
     "@react-native-community/cli": "^15.0.0",
-    "@react-native-community/template": "^0.75.0",
+    "@react-native-community/template": "^0.76.0",
     "@rnx-kit/eslint-plugin": "^0.8.0",
     "@rnx-kit/tsconfig": "^2.0.0",
     "@types/js-yaml": "^4.0.5",
