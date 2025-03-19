@@ -54,9 +54,9 @@ function getUserPrivacyManifest(appConfig, targetPlatform) {
  * @param {JSONObject} appConfig
  * @param {ApplePlatform} targetPlatform
  * @param {string} destination
- * @returns {Promise<void>}
+ * @returns {void}
  */
-export async function generatePrivacyManifest(
+export function generatePrivacyManifest(
   appConfig,
   targetPlatform,
   destination,
@@ -106,6 +106,7 @@ export async function generatePrivacyManifest(
     }
   }
 
-  const xcprivacy = await toPlist(manifest);
-  fs.writeFileSync(path.join(destination, "PrivacyInfo.xcprivacy"), xcprivacy);
+  const filename = "PrivacyInfo.xcprivacy";
+  const xcprivacy = toPlist(manifest, filename);
+  fs.writeFileSync(path.join(destination, filename), xcprivacy);
 }
