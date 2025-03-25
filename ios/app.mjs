@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { URL, fileURLToPath } from "node:url";
 import { loadAppConfig } from "../scripts/appConfig.mjs";
 import { findFile, readTextFile, toVersionNumber } from "../scripts/helpers.js";
-import { cp_r, mkdir_p } from "../scripts/utils/filesystem.mjs";
+import { cp_r, mkdir_p, rm_r } from "../scripts/utils/filesystem.mjs";
 import { generateAssetsCatalogs } from "./assetsCatalog.mjs";
 import { generateEntitlements } from "./entitlements.mjs";
 import { generateInfoPlist } from "./infoPlist.mjs";
@@ -35,12 +35,22 @@ import {
 const SUPPORTED_PLATFORMS = ["ios", "macos", "visionos"];
 
 /**
+ * @param {string} platform
+ * @returns {asserts platform is ApplePlatform}
+ */
+function assertSupportedPlatform(platform) {
+  if (!SUPPORTED_PLATFORMS.includes(platform)) {
+    throw new Error(`Unsupported platform: ${platform}`);
+  }
+}
+
+/**
  * @param {string} projectRoot
  * @param {string} destination
  * @returns {void}
  */
 function exportNodeBinaryPath(projectRoot, destination, fs = nodefs) {
-  const node = process.argv0;
+  const node = process.argv[0];
   fs.writeFileSync(
     path.join(projectRoot, ".xcode.env"),
     `export NODE_BINARY='${node}'\n`
@@ -99,7 +109,7 @@ function readPackageVersion(p, fs = nodefs) {
 
 /**
  * @param {string} projectRoot
- * @param {ApplePlatform} targetPlatform
+ * @param {string} targetPlatform
  * @param {JSONObject} options
  * @returns {ProjectConfiguration}
  */
@@ -109,9 +119,7 @@ export function generateProject(
   options,
   fs = nodefs
 ) {
-  if (!SUPPORTED_PLATFORMS.includes(targetPlatform)) {
-    throw new Error(`Unsupported platform: ${targetPlatform}`);
-  }
+  assertSupportedPlatform(targetPlatform);
 
   const appConfig = loadAppConfig(projectRoot, fs);
 
@@ -134,7 +142,11 @@ export function generateProject(
   // Link source files
   const srcDirs = ["ReactTestApp", "ReactTestAppTests", "ReactTestAppUITests"];
   for (const file of srcDirs) {
-    fs.linkSync(projectPath(file, targetPlatform), destination);
+    const symlink = path.join(destination, file);
+    if (fs.existsSync(symlink)) {
+      rm_r(symlink, fs);
+    }
+    fs.symlinkSync(projectPath(file, targetPlatform), symlink);
   }
 
   // Shared code lives in `ios/ReactTestApp/`
@@ -142,7 +154,7 @@ export function generateProject(
     const shared = path.join(destination, "Shared");
     if (!fs.existsSync(shared)) {
       const source = new URL("ReactTestApp", import.meta.url);
-      fs.linkSync(fileURLToPath(source), shared);
+      fs.symlinkSync(fileURLToPath(source), shared);
     }
   }
 
@@ -168,8 +180,8 @@ export function generateProject(
 
   /** @type {ProjectConfiguration} */
   const project = {
-    xcodeprojPath: xcodeprojDst,
-    reactNativePath,
+    xcodeprojPath: path.resolve(xcodeprojDst),
+    reactNativePath: path.resolve(reactNativePath),
     reactNativeVersion,
     useNewArch,
     useBridgeless,
@@ -178,9 +190,7 @@ export function generateProject(
     uitestsBuildSettings: {},
   };
 
-  if (isObject(platformConfig)) {
-    applyBuildSettings(platformConfig, project, projectRoot, destination, fs);
-  }
+  applyBuildSettings(platformConfig, project, projectRoot, destination, fs);
 
   const overrides = options["buildSettingOverrides"];
   if (isObject(overrides)) {
