@@ -14,29 +14,26 @@ using facebook::jsi::Runtime;
 - (void)invokeAsync:(std::function<void()> &&)func;
 @end
 
-@implementation RTAAppRegistryModule
-
-RCT_EXPORT_MODULE();
-
-+ (BOOL)requiresMainQueueSetup
+void RTAPostDidRegisterAppsNotification(NSValue *value)
 {
-    return YES;
-}
-
-- (instancetype)init
-{
-    if (self = [super init]) {
-        [NSNotificationCenter.defaultCenter addObserver:self
-                                               selector:@selector(javascriptDidLoadNotification:)
-                                                   name:RCTJavaScriptDidLoadNotification
-                                                 object:nil];
+    auto runtime = static_cast<Runtime *>([value pointerValue]);
+    auto appKeys = ReactTestApp::GetAppKeys(*runtime);
+    if (appKeys.empty()) {
+        return;
     }
-    return self;
+
+    NSMutableArray *array = [NSMutableArray arrayWithCapacity:appKeys.size()];
+    for (const auto &appKey : appKeys) {
+        [array addObject:[NSString stringWithUTF8String:appKey.c_str()]];
+    }
+
+    [NSNotificationCenter.defaultCenter postNotificationName:ReactAppDidRegisterAppsNotification
+                                                      object:nil
+                                                    userInfo:@{@"appKeys": [array copy]}];
 }
 
-- (void)javascriptDidLoadNotification:(NSNotification *)note
+void RTAPostDidRegisterAppsNotificationWithBridge(id bridge)
 {
-    id bridge = note.userInfo[@"bridge"];
     if (![bridge isKindOfClass:[RCTCxxBridge class]] ||
         ![bridge respondsToSelector:@selector(runtime)] ||
         ![bridge respondsToSelector:@selector(invokeAsync:)]) {
@@ -50,21 +47,6 @@ RCT_EXPORT_MODULE();
             return;
         }
 
-        auto appKeys = ReactTestApp::GetAppKeys(*runtime);
-        if (appKeys.empty()) {
-            return;
-        }
-
-        NSMutableArray *array = [NSMutableArray arrayWithCapacity:appKeys.size()];
-        for (const auto &appKey : appKeys) {
-            [array addObject:[NSString stringWithUTF8String:appKey.c_str()]];
-        }
-
-        [NSNotificationCenter.defaultCenter
-            postNotificationName:ReactTestAppDidRegisterAppsNotification
-                          object:nil
-                        userInfo:@{@"appKeys": [array copy]}];
+        RTAPostDidRegisterAppsNotification([NSValue valueWithPointer:runtime]);
     }];
 }
-
-@end
