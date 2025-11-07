@@ -16,8 +16,7 @@ function AppContent() {
   const [counter, setCounter] = React.useState(0);
 
   const runLongTask = () => {
-    // Synchronous CPU-bound work (blocks UI until done)
-    const TOTAL = 20_000_000;
+    const TOTAL = 10_000_000;
     let accumulator = 0;
     for (let n = 0; n < TOTAL; n++) {
       const a = (n % 997) + 1;
