@@ -35,13 +35,6 @@ function App() {
 function AppContent() {
   const safeAreaInsets = useSafeAreaInsets();
   const [counter, setCounter] = React.useState(0);
-  const [isLongTaskRunning, setIsLongTaskRunning] = React.useState(false);
-  const [longTaskResult, setLongTaskResult] = React.useState<string | null>(
-    null,
-  );
-  const [isApiLoading, setIsApiLoading] = React.useState(false);
-  const [apiResult, setApiResult] = React.useState<string | null>(null);
-  const [apiError, setApiError] = React.useState<string | null>(null);
 
   const runLongTask = () => {
     // Synchronous CPU-bound work (blocks UI until done)
@@ -52,7 +45,6 @@ function AppContent() {
       const b = (n % 991) + 1;
       accumulator += Math.sin(a) * Math.cos(b) + Math.sqrt((a * b) % 1000);
     }
-
   };
 
   React.useEffect(() => {
@@ -82,66 +74,6 @@ function AppContent() {
             title="Increment Counter"
             onPress={() => setCounter(prev => prev + 1)}
           />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Long lasting function</Text>
-          <Button
-            title={isLongTaskRunning ? 'Running…' : 'Run Long Task (3s)'}
-            onPress={() => {
-              runLongTask();
-              setCounter(prev => prev + 1);
-            }}
-            disabled={isLongTaskRunning}
-          />
-          {isLongTaskRunning && (
-            <View style={styles.inlineRow}>
-              <ActivityIndicator style={styles.spinner} />
-              <Text>Working…</Text>
-            </View>
-          )}
-          {longTaskResult && (
-            <Text style={styles.paragraph}>{longTaskResult}</Text>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>API call</Text>
-          <Button
-            title={isApiLoading ? 'Loading…' : 'Call API'}
-            onPress={() => {
-              if (isApiLoading) return;
-              setIsApiLoading(true);
-              setApiResult(null);
-              setApiError(null);
-              (async () => {
-                try {
-                  const response = await fetch(
-                    'https://jsonplaceholder.typicode.com/todos/1',
-                  );
-                  if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                  }
-                  const data = await response.json();
-                  setApiResult(JSON.stringify(data, null, 2));
-                } catch (error: unknown) {
-                  const message =
-                    error instanceof Error ? error.message : 'Unknown error';
-                  setApiError(message);
-                } finally {
-                  setIsApiLoading(false);
-                }
-              })();
-            }}
-            disabled={isApiLoading}
-          />
-          {isApiLoading && <ActivityIndicator style={styles.spinner} />}
-          {apiResult && (
-            <View style={styles.resultBox}>
-              <Text style={styles.resultText}>{apiResult}</Text>
-            </View>
-          )}
-          {apiError && <Text style={styles.errorText}>Error: {apiError}</Text>}
         </View>
       </ScrollView>
     </View>
